@@ -2,7 +2,7 @@
 /**
  * Die Klasse erlaubt den Zugriff auf die Datentabelle adressen.
  * @author Lars Münchhagen <lars.muenchhagen@outlook.de>
- * @version 0.0.1
+ * @version 0.0.2
  *
  */
 
@@ -11,7 +11,7 @@ namespace modules\mod_Adressen;
 
 
 /*--------------------TODO AND FIX----------*/
-
+# TODO refactor
 /*--------------------REQUIREMENTS----------*/
 
 use ErrorException;
@@ -29,56 +29,54 @@ class Adressen
 
 
     /*--------------------PUBLIC----------------*/
-    /**
-     * Setzt eine neue Adresse. Die ID der neuen Adresse ist bis zum Eintrag in die
-     * Datenbank = 0.
-     *
-     * @param string    $name   Der neue Straßenname, darf nicht NULL oder leer sein.
-     * @param string    $nummer Die neue Hausnummer.
-     * @param string    $lat    Der neue Breitengrad.
-     * @param string    $lng    Der neue Längengrad.
-     *
-     * @return void
-     */
-    public function setNewAdresse(string $name = '', string $nummer = '', string $lat = '', string $lng = ''):void{
-        # prüfen ob der name leer ist
-        if ($name == ''){
-            $this->error [] = 'Der Straßenname darf nicht leer sein';
-        }else{
-            # instanz als neu kennzeichnen -1
-            $this->id = -1;
-            # array $adresse vorsorglich leeren
-            $this->adresse = array();
-            $this->adresse = compact('name', 'nummer', 'lat', 'lng');
-        }
-    }
+
     /**
      * Erzeuge einen Datenbankeintrag.
      *
      * return bool  Rückgabe des Ergebnisses des Datenbankeintrags.
-     *
+     * @param string $name
+     * @param string $nummer
+     * @param string $lat
+     * @param string $lng
+     * @return bool
      * @throws ErrorException
      */
-    public function create():bool{
-        # prüfe ob bereits eine ID vorhanden ist
-        if ($this->id !== -1){
+    public function create(string $name = '', string $nummer = '', string $lat = '', string $lng = ''):bool{
+        # prüfe ob ID innerhalb der Instanz auf neue Adresse gesetzt wurde.
+        if ($this->id !== 0){
             $this->error[] = 'Die Adresse ist nicht neu!';
             return false;
         }else{
-            $sql = "INSERT INTO adressen (name, nummer, lat, lng) VALUES (:name, :nummer, :lat,:lng)";
-            $sqlArgs = $this->adresse;
-            $result = $this->createNewEntry($sql, $sqlArgs);
-            if (!$result){
-                $this->error[] = ' Fehler bei der Erzeugung des Datenbankeintrags!';
+            # prüfe ob name nicht leer ist
+            if ($name == ''){
+                $this->error [] = 'Der Straßenname darf nicht leer sein';
                 return false;
             }else {
-                $this->setId($this->id);
-                return true;
+                # schreibe in die Datenbanktabelle
+                $sql = "INSERT INTO adressen (name, nummer, lat, lng) VALUES (:name, :nummer, :lat,:lng)";
+                $this->adresse = compact('name','nummer','lat','lng');
+                $sqlArgs = $this->adresse;
+                $result = $this->createNewAdresse($sql, $sqlArgs);
+                # Prüfe das Ergebnis
+                if (!$result) {
+                    $this->error[] = ' Fehler bei der Erzeugung des Datenbankeintrags!';
+                    return false;
+                } else {
+                    $id = $this->id;
+                    $this->adresse = compact('id','name','nummer','lat','lng');
+                    if($this->adresse == $this->read()[0]){
+                        return true;
+                    }else{
+                        $this->error[] = 'Fehler beim Schreiben, Daten stimmen nicht überein!';
+                        return false;
+                    }
+                }
             }
         }
     }
     /**
-     * Update eines Datenbankeintrags, die ID muss gesetzt sein.
+     * Update eines Datenbankeintrags, die ID muss vorher über Instanz.setId() gesetzt sein.
+     *
      * @return bool
      * @throws ErrorException
      */
@@ -88,13 +86,7 @@ class Adressen
             return false;
         }else{
             $sql = "UPDATE adressen SET name = :name, nummer = :nummer, lat = :lat, lng = :lng WHERE id = :id";
-            $sqlArgs = array(   'name'  => $this->name,
-                                'nummer'=> $this->nummer,
-                                'lat'   => $this->lat,
-                                'lng'   => $this->lng,
-                                'id'    => $this->id
-                            );
-            $this->adresse = $sqlArgs;
+            $sqlArgs = $this->adresse;
             $result = $this->aktualisiereAdresse($sql, $sqlArgs);
             if (!$result){
                 return false;
@@ -103,7 +95,65 @@ class Adressen
             }
         }
     }
-    public function read():bool{}
+    /**
+     * Lese die Adresse aus der Datenbanktabelle adressen anhand der ID.
+     * Die Id muss vorher über Instanz.setId() bekanntgegeben werden.
+     * Die Adresse wird an das Array adressen gebunden und anschließend
+     * über die Methode setAdressenInstanzvariablen() an die jeweiligen
+     * Instanzvariablen übergeben.
+     *
+     * @return array                                Es wird ein Ergebnis als Array oder ein leeres Array zurückgegeben.
+     * @throws ErrorException
+     * @see setAdressenInstanzvariablen()
+     */
+    public function read():array{
+        # Prüfe ob id gesetzt
+        if ($this->id == 0 OR $this->id == -1 OR !is_numeric($this->id)){
+            $this->error[] = 'Es wurde keine gültige AdressenID angegeben!';
+            return array();
+        }else{
+            $sql = "SELECT id, name, nummer, lat, lng FROM adressen WHERE id = :id";
+            $sqlArgs = array(':id'=>$this->id);
+            $result = $this->readFromAdressen($sql, $sqlArgs);
+            if (!$result){
+                $this->error[] = 'Fehler bei der Abfrage der Daten!';
+                return array();
+            }else{
+                $this->setAdressenInstanzvariablen($result);
+                return $result;
+            }
+        }
+    }
+    /**
+     * Gibt eine komplette Liste der Tabelle adressen aus.
+     *
+     * @param string    $orderBy    Spalte nach der sortiert werden soll.
+     * @param string    $order      Sortierreihenfolge ASC = aufsteigend (default), DESC absteigend
+     * @param int       $rows       Anzahl der auszugebenden Spalten
+     * @param int       $offset     Beginn der Rückgabe Achtung! 1. Zeile hat Offset 0
+     * @return array                Ein assoziatives Array ([0]=>Array [int id, string name, string nummer, string lat, string lng]...)
+     * @throws ErrorException
+     */
+    public function readAdressenListe(string $orderBy = 'name',string $order='ASC', int $rows = 0, int $offset = 0):array{
+        $sqlOrder = ' ORDER BY '.$orderBy;
+            if (strtoupper($order)== 'ASC'){
+                $sqlOrder .= ' ASC';
+            }else {
+                $sqlOrder .= ' DESC';
+            }
+        if ($rows == 0 OR !is_numeric($rows)){
+            $sqlLimit = '';
+        }else {
+            $sqlLimit = ' LIMIT '.$rows;
+            if ($offset !== 0 AND is_numeric($offset)){
+                $sqlLimit .= ' OFFSET '.$offset;
+            }
+        }
+        $sql = "SELECT * FROM adressen".$sqlOrder.$sqlLimit;
+
+        return $this->readFromAdressen($sql);
+    }
+
     /*--------------------SETTER----------------*/
     /**
      * setze die ID der aktuellen Instanz
@@ -112,18 +162,11 @@ class Adressen
      */
     public function setId(int $id = 0): void
     {
-        $sql = "SELECT id, name, nummer, lat, lng FROM adressen WHERE id = :id";
-        $sqlArgs = array('id'=>$id);
-
         if ($id == 0 or !is_numeric($id)){
             $this->error[] = 'Keine oder ungültige ID angegeben! Die ID muss eine Ganzzahl größer 0 sein.';
         }else{
-
-            $result = $this->readFromDatabase($sql, $sqlArgs);
-
-            if($result){
-                $this->setAdressenInstanzvariablen($this->adresse);
-            }
+            $this->id = $id;
+            $this->adresse['id'] = $id;
         }
     }
     /**
@@ -136,6 +179,7 @@ class Adressen
             $this->error[] = "Der angegebene Name darf nicht leer sein!";
         }else {
             $this->name = $name;
+            $this->adresse['name'] = $name;
         }
     }
     /**
@@ -145,6 +189,7 @@ class Adressen
     public function setNummer(string $nummer = ''): void
     {
         $this->nummer = $nummer;
+        $this->adresse['nummer'] = $nummer;
     }
     /**
      * setze die Breitengrade der aktuellen Instanz
@@ -153,6 +198,7 @@ class Adressen
     public function setLat(string $lat = ''): void
     {
         $this->lat = $lat;
+        $this->adresse['lat']= $lat;
     }
     /**
      * setze die Längengrade der aktuellen Instanz
@@ -161,6 +207,26 @@ class Adressen
     public function setLng(string $lng = ''): void
     {
         $this->lng = $lng;
+        $this->adresse['lng'] = $lng;
+    }
+    public function setAdresse(int $id = 0, string $name='', string $nummer='', string $lat='', string $lng=''){
+        # Prüfe ob eine gültige ID vorhanden
+        if ($id == 0 or $id == -1 or !is_numeric($id)) {
+            $this->error[] = 'Keine gültige ID angegeben!';
+        }
+        # Prüfe ob name gesetzt
+        if ($name == ''){
+            $this->error[] = 'Kein Straßenname angegeben!';
+        }
+        # Prüfe ob bis hierher Fehler erzeugt wurden, wenn nein fortfahren
+        if (count($this->error) == 0){
+            $this->id = $id;
+            $this->name = $name;
+            $this->nummer = $nummer;
+            $this->lat = $lat;
+            $this->lng = $lng;
+            $this->adresse = compact('id', 'name', 'nummer', 'lat', 'lng');
+        }
     }
 
     /*--------------------GETTER----------------*/
@@ -231,7 +297,7 @@ class Adressen
      *
      * @return bool
      */
-    private function createNewEntry(string $sql = '', array $sqlArgs = []):bool{
+    private function createNewAdresse(string $sql = '', array $sqlArgs = []):bool{
         $pdo = Database::connectDB();
         $stmt = $pdo->prepare($sql);
         $result = $stmt ->execute($sqlArgs);
@@ -254,22 +320,22 @@ class Adressen
      * @param array $sqlArgs Die übergebenen Parameter für die Datenbankabfrage.
      * @param string $sql Der übergebene SQL-String für die Datenbankabfrage.
      *
-     * @return bool                 Der Rückgabewert ist true oder false, je nach Ergebnis der Datenbankabfrage.
+     * @return array                 Der Rückgabewert ist ein Array mit dem Inhalt der Datenbankabfrage.
      *
      * @throws ErrorException       Fehler der Datenbankabfrage
      * @see                         setAdressenInstanzvariablen()
      */
-    private function readFromDatabase (string $sql = '', array $sqlArgs = []): bool{
-        if($sql == '' OR $sqlArgs == []){
-            return false;
+    private function readFromAdressen (string $sql = '', array $sqlArgs = []): array
+    {
+        if($sql == ''){
+            return array();
         }else{
             $result = Database::readFromDatabase($sql, $sqlArgs);
             if(!$result){
                 $this->error[] = "Fehler bei der Datenbankabfrage";
-                return false;
+                return array();
             }else{
-                $this->adresse = $result;
-                return true;
+                return $result;
             }
         }
     }
@@ -301,10 +367,11 @@ class Adressen
 
         if (!empty($adressen)){
             $this->adresse  = $adressen[0];
-            $this->lat      = $adressen[0]['lat'];
             $this->id       = $adressen[0]['id'];
             $this->name     = $adressen[0]['name'];
-            $this->lng      = $adressen[0]['lng'];
+            $this->nummer   = (is_null($adressen[0]['nummer'])) ? '' : $adressen[0]['nummer'];
+            $this->lat      = (is_null($adressen[0]['lat'])) ? '' : $adressen[0]['lat'];
+            $this->lng      = (is_null($adressen[0]['lng'])) ? '' : $adressen[0]['lng'];
         }
     }
 }
