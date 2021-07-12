@@ -1,0 +1,139 @@
+/*
+ * Copyright (c) 2021  Lars Münchhagen
+ * email: lars.muenchhagen@outlook.de
+ */
+
+:root{
+    --main-bg-color: rgb(250, 250, 250);
+    --main-fg-color: rgb(54,54,54);
+    --main-fg-akzent-color: rgb(0,120,189);
+    --main-warn-color: rgb(255,0,0);
+    --main-succ-color: rgb(0, 150, 0);
+    --sec-bg-color: rgb(0,120,189);
+    --sec-fg-color: white;
+}
+html{
+    background-color:var(--main-bg-color);
+    color:var(--main-fg-color);
+    margin:0;
+    padding:0;
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    
+}
+body{
+    font-size: 14px;
+    margin:0;
+    padding: 0;
+    min-width: 350px;
+}
+h1,h2,h3{
+    color:var(--main-bg-color);
+    font-weight: lighter;
+    background-color:var(--sec-bg-color);
+}
+/* Header ---------start---------------*/
+header{
+    background-color: var(--sec-bg-color);
+    margin:0;
+    padding: .2em;
+    display: flex;
+    justify-content: space-between;
+}
+header h1{
+    font-size: small;
+    font-weight: 700;
+    width: 30%;
+}
+.titel{
+	font-size: 1.5em;
+	text-transform: uppercase;
+	font-weight: bold;
+	margin:0;
+	padding:0;
+	color:var(--sec-fg-color);
+    width: 30%;
+}
+.titel i{
+    margin-right: 1em   ;
+}
+/* Header ---------end-----------------*/
+/* Main -----------start---------------*/
+main{
+    height: 93%;
+    margin: .5em;
+}
+/* Main -----------end-----------------*/
+/* Forms ----------start---------------*/
+form{
+    border: 1px solid var(--sec-bg-color);
+}
+input{
+    border: 1px solid var(--sec-bg-color);
+}
+input:focus{
+    background-color: rgb(240,240,240);
+}
+button{
+    border: 1px solid var(--sec-bg-color);
+}
+input[type=submit],input[type=reset], button{
+    background-color: var(--sec-bg-color);
+    color: var(--sec-fg-color);
+    font-weight: lighter;
+    font-size: medium;
+}
+input[type=submit]:hover, input[type=reset]:hover, button:hover,
+input[type=submit]:focus, input[type=reset]:focus, button:focus{
+    color:var(--sec-bg-color);
+    background-color: var(--sec-fg-color);
+    border: 1px solid var(--sec-bg-color);
+}
+/* Forms ----------end-----------------*/
+strong{
+    color:var(--main-fg-akzent-color);
+}
+.rechts{
+    display: block;
+    text-align: right;
+}
+.main-warn{ /* Hauptklasse für Warnung */
+    color:var(--main-warn-color);
+}
+.main-success{ /* Hauptklasse für Erfolg */
+    color: var(--main-succ-color);
+}
+.bold{
+    font-weight: bold;
+}
+
+.button{
+    border: 1px solid var(--sec-fg-color);
+    background-color: var(--sec-bg-color);
+    color: var(--sec-fg-color);
+    font-size: smaller;
+    font-weight: 700;
+    padding: .2em .2em 0 .2em;
+    text-decoration: none;
+    margin:.5em;
+}
+.button:hover{
+    background-color: var(--sec-fg-color);
+    color: var(--sec-bg-color);
+}
+.panel{
+    border: 1px solid var(--sec-bg-color);
+    margin: .2em;
+    padding:.1em;
+}
+.main-color-fg{
+    color: var(--main-fg-color);
+}
+.main-color-bg{
+    background-color: var(--main-bg-color);
+}
+.main-fg-akzent-color{
+    color: var(--main-fg-akzent-color)
+}
+.main-bg-akzent-color{
+    background-color: var(--main-fg-akzent-color);
+}

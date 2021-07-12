@@ -1,0 +1,65 @@
+/*
+ * Copyright (c) 2021  Lars Münchhagen
+ * email: lars.muenchhagen@outlook.de
+ */
+
+main{
+    height:90%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+}
+.lightbox{
+    z-index: 50;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,.8);
+    top: 0;
+    left: 0;
+}
+.login-form{
+    font-size: 1em;
+    width: 40%;
+    min-width: 350px;
+    max-width: 400px;
+    height: 350px;
+    box-shadow: 0 1px 20px black;
+    z-index: 99;
+    background-color: white;
+}
+.login-div{
+    padding: 1em;
+}
+.login-h2{
+    margin: 0;
+    padding:.5em;
+}
+.login-div label input{
+    display: block;
+    width: 100%;
+    min-width: 10em;
+    padding: .5em;
+}
+.login-button{
+    width: 10em;
+    margin-top: 1em;
+    margin-right: 1em;
+    padding: .5em;
+}
+
+.login-div label{
+    display: block;
+    width:100%;
+    min-width: 5em;
+    text-align: left;
+    font-size: 1.5em;
+    margin-top: 1em;
+}
+.login-form p{
+    min-height: 1em;
+    text-align: center;
+}

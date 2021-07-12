@@ -1,0 +1,24 @@
+/*
+ * Copyright (c) 2021  Lars Münchhagen
+ * email: lars.muenchhagen@outlook.de
+ */
+html{
+    margin: 0;
+    padding: 0;
+    background-color: rgb(50,50,50);
+}
+body{
+
+    color: rgb(245,245,245);
+
+}
+.login{
+    padding-top: .5em;
+    width: 30%;
+    text-align: right;
+}
+#user-settings-link{
+    text-decoration: none;
+    color: rgb(250,250,250);
+    margin-right: .5em;
+}

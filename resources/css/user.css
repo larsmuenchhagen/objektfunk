@@ -1,0 +1,107 @@
+/*
+ * Copyright (c) 2021  Lars Münchhagen
+ * email: lars.muenchhagen@outlook.de
+ */
+html, body{
+    margin: 0;
+    padding: 0;
+}
+.login{
+    padding-top: .6em;
+    width: 30%;
+    text-align: right;
+}
+a:link,a:active,a:hover,a:visited{
+    text-decoration: none;
+}
+main{
+    display: flex;
+    justify-content: space-between;
+
+}
+nav{
+    width: 5%;
+    min-width: 80px;
+    height: 100%;
+    border-right: 1px solid lightgray;
+}
+nav div a:hover{
+    text-decoration: underline;
+}
+aside{
+    width: 10%;
+    min-width: 100px;
+    height: 100%;
+    border-left: 1px solid lightgray;
+    padding: 0 .5em;
+}
+aside i{
+    margin-right: .5em;
+}
+.container{
+    display: flex;
+    width: 75%;
+    min-width: 400px;
+    flex-wrap: wrap;
+    height: fit-content;
+}
+section{
+    display: flex;
+    width: 100%;
+    flex-wrap: nowrap;
+    height: fit-content;
+}
+form{
+    border: none;
+    min-width: 40%;
+    display: block;
+    margin: 2em;
+    height: fit-content;
+}
+
+input, label{
+    padding: .2em;
+}
+.panel{
+    border: none;
+    display: flex;
+    margin: 1em 0 1em 0;
+    justify-content: start;
+}
+
+.panel label{
+    font-size: 1em;
+    width: 10em;
+    font-weight: lighter;
+}
+
+.panel input{
+    font-size: .9em;
+    width: 90%;
+    font-weight: normal;
+}
+.panel-buttons{
+    display: block;
+    text-align: right;
+}
+input[type=submit], input[type=reset]{
+    width: 8em;
+    font-size: 1em;
+}
+.user-pic{
+    max-width: 150px;
+    max-height: 150px;
+    min-width: 150px;
+    margin: 4em 2em 2em 2em;
+}
+.message{
+    font-size: 1em;
+    margin-bottom: 0;
+    margin-top: 0;
+    padding-left: 1em;
+}
+#avatar{
+    width: 100%;
+    height: auto;
+    border: 1px solid black;
+}
