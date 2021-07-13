@@ -23,9 +23,6 @@ class Strassen
 {
     private int     $id         = 0;
     private string  $name       = '';
-    private string  $nummer     = '';
-    private string  $lat        = '';
-    private string  $lng        = '';
     private array   $error      = [];
     private array   $strasse    = [];
 
@@ -43,7 +40,7 @@ class Strassen
      * @return bool
      * @throws ErrorException
      */
-    public function create(string $name = '', string $nummer = '', string $lat = '', string $lng = ''):bool{
+    public function create(string $name = ''):bool{
         # prüfe ob ID innerhalb der Instanz auf neue Strasse gesetzt wurde.
         if ($this->id !== 0){
             $this->error[] = 'Die Strasse ist nicht neu!';
@@ -55,8 +52,8 @@ class Strassen
                 return false;
             }else {
                 # schreibe in die Datenbanktabelle
-                $sql = "INSERT INTO strassen (name, nummer, lat, lng) VALUES (:name, :nummer, :lat,:lng)";
-                $this->strasse = compact('name','nummer','lat','lng');
+                $sql = "INSERT INTO strassen (name) VALUES (:name)";
+                $this->strasse = array('name'=>$name);
                 $sqlArgs = $this->strasse;
                 $result = $this->createNewStrasse($sql, $sqlArgs);
                 # Prüfe das Ergebnis
@@ -65,7 +62,7 @@ class Strassen
                     return false;
                 } else {
                     $id = $this->id;
-                    $this->strasse = compact('id','name','nummer','lat','lng');
+                    $this->strasse = array('id'=>$id,'name'=>$name);
                     if($this->strasse == $this->read()[0]){
                         return true;
                     }else{
@@ -87,7 +84,7 @@ class Strassen
             $this->error[] = 'Keine gültige ID angegeben!';
             return false;
         }else{
-            $sql = "UPDATE strassen SET name = :name, nummer = :nummer, lat = :lat, lng = :lng WHERE id = :id";
+            $sql = "UPDATE strassen SET name = :name";
             $sqlArgs = $this->strasse;
             $result = $this->aktualisiereStrasse($sql, $sqlArgs);
             if (!$result){
@@ -114,7 +111,7 @@ class Strassen
             $this->error[] = 'Es wurde keine gültige AdressenID angegeben!';
             return array();
         }else{
-            $sql = "SELECT id, name, nummer, lat, lng FROM strassen WHERE id = :id";
+            $sql = "SELECT id, name FROM strassen WHERE id = :id";
             $sqlArgs = array(':id'=>$this->id);
             $result = $this->readFromStrassen($sql, $sqlArgs);
             if (!$result){
@@ -173,15 +170,8 @@ class Strassen
     {
         if ($suche == '') return array();
         $sql = "SELECT id, name, nummer, lat, lng FROM strassen ";
-        $sql .= "WHERE UPPER(name) LIKE UPPER(:name) OR ";
-        $sql .= "UPPER(nummer) LIKE UPPER(:nummer) OR ";
-        $sql .= "UPPER(lat) LIKE UPPER(:lat) OR ";
-        $sql .= "UPPER(lng) LIKE UPPER(:lng)";
-        $sqlArgs = array(   ':name'     =>'%'.$suche.'%',
-                            ':nummer'   =>'%'.$suche.'%',
-                            ':lat'      =>'%'.$suche.'%',
-                            ':lng'      =>'%'.$suche.'%'
-                    );
+        $sql .= "WHERE UPPER(name) LIKE UPPER(:name) ";
+        $sqlArgs = array(   ':name'     =>'%'.$suche.'%');
         $tmp_Adr = new Strassen();
         return $tmp_Adr->readFromStrassen($sql, $sqlArgs);
     }
@@ -213,34 +203,8 @@ class Strassen
             $this->strasse['name'] = $name;
         }
     }
-    /**
-     * setze die Hausnummer der aktuellen Instanz
-     * @param string $nummer
-     */
-    public function setNummer(string $nummer = ''): void
-    {
-        $this->nummer = $nummer;
-        $this->strasse['nummer'] = $nummer;
-    }
-    /**
-     * setze die Breitengrade der aktuellen Instanz
-     * @param string $lat
-     */
-    public function setLat(string $lat = ''): void
-    {
-        $this->lat = $lat;
-        $this->strasse['lat']= $lat;
-    }
-    /**
-     * setze die Längengrade der aktuellen Instanz
-     * @param string $lng
-     */
-    public function setLng(string $lng = ''): void
-    {
-        $this->lng = $lng;
-        $this->strasse['lng'] = $lng;
-    }
-    public function setStrasse(int $id = 0, string $name='', string $nummer='', string $lat='', string $lng=''){
+
+    public function setStrasse(int $id = 0, string $name=''){
         # Prüfe ob eine gültige ID vorhanden
         if ($id == 0 or $id == -1 or !is_numeric($id)) {
             $this->error[] = 'Keine gültige ID angegeben!';
@@ -253,10 +217,7 @@ class Strassen
         if (count($this->error) == 0){
             $this->id = $id;
             $this->name = $name;
-            $this->nummer = $nummer;
-            $this->lat = $lat;
-            $this->lng = $lng;
-            $this->strasse = compact('id', 'name', 'nummer', 'lat', 'lng');
+            $this->strasse = compact('id', 'name');
         }
     }
 
@@ -283,30 +244,6 @@ class Strassen
     public function getName(): string
     {
         return $this->name;
-    }
-    /**
-     * gibt die Hausnummer der aktuellen Instanz aus
-     * @return string
-     */
-    public function getNummer(): string
-    {
-        return $this->nummer;
-    }
-    /**
-     * gibt den Breitengrad der aktuellen Instanz aus
-     * @return string
-     */
-    public function getLat(): string
-    {
-        return $this->lat;
-    }
-    /**
-     * gibt den Längengrad der aktuellen Instanz aus
-     * @return string
-     */
-    public function getLng(): string
-    {
-        return $this->lng;
     }
     /**
      * Gibt die aktuellen Fehler als array zurück
@@ -400,9 +337,6 @@ class Strassen
             $this->strasse  = $strassen[0];
             $this->id       = $strassen[0]['id'];
             $this->name     = $strassen[0]['name'];
-            $this->nummer   = (is_null($strassen[0]['nummer'])) ? '' : $strassen[0]['nummer'];
-            $this->lat      = (is_null($strassen[0]['lat'])) ? '' : $strassen[0]['lat'];
-            $this->lng      = (is_null($strassen[0]['lng'])) ? '' : $strassen[0]['lng'];
         }
     }
 }
