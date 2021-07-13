@@ -1,23 +1,25 @@
 <?php
 /**
- * Die Klasse erlaubt den Zugriff auf die Datentabelle adressen.
+ * Die Klasse erlaubt den Zugriff auf die Datentabelle strassen.
  * @author Lars Münchhagen <lars.muenchhagen@outlook.de>
  * @version 0.0.2
  *
  */
 
 
-namespace modules\mod_Adressen;
+namespace modules\mod_Strassen;
 
 
 /*--------------------TODO AND FIX----------*/
 # TODO refactor
+# TODO überprüfen ob alle Getter und Setter erforderlich sind
+# TODO nach Umbenennung Funktionen nochmals überprüfen
 /*--------------------REQUIREMENTS----------*/
 
 use ErrorException;
 use system\Database;
 
-class Adressen
+class Strassen
 {
     private int     $id         = 0;
     private string  $name       = '';
@@ -25,7 +27,7 @@ class Adressen
     private string  $lat        = '';
     private string  $lng        = '';
     private array   $error      = [];
-    private array   $adresse    = [];
+    private array   $strasse    = [];
 
 
     /*--------------------PUBLIC----------------*/
@@ -42,9 +44,9 @@ class Adressen
      * @throws ErrorException
      */
     public function create(string $name = '', string $nummer = '', string $lat = '', string $lng = ''):bool{
-        # prüfe ob ID innerhalb der Instanz auf neue Adresse gesetzt wurde.
+        # prüfe ob ID innerhalb der Instanz auf neue Strasse gesetzt wurde.
         if ($this->id !== 0){
-            $this->error[] = 'Die Adresse ist nicht neu!';
+            $this->error[] = 'Die Strasse ist nicht neu!';
             return false;
         }else{
             # prüfe ob name nicht leer ist
@@ -53,18 +55,18 @@ class Adressen
                 return false;
             }else {
                 # schreibe in die Datenbanktabelle
-                $sql = "INSERT INTO adressen (name, nummer, lat, lng) VALUES (:name, :nummer, :lat,:lng)";
-                $this->adresse = compact('name','nummer','lat','lng');
-                $sqlArgs = $this->adresse;
-                $result = $this->createNewAdresse($sql, $sqlArgs);
+                $sql = "INSERT INTO strassen (name, nummer, lat, lng) VALUES (:name, :nummer, :lat,:lng)";
+                $this->strasse = compact('name','nummer','lat','lng');
+                $sqlArgs = $this->strasse;
+                $result = $this->createNewStrasse($sql, $sqlArgs);
                 # Prüfe das Ergebnis
                 if (!$result) {
                     $this->error[] = ' Fehler bei der Erzeugung des Datenbankeintrags!';
                     return false;
                 } else {
                     $id = $this->id;
-                    $this->adresse = compact('id','name','nummer','lat','lng');
-                    if($this->adresse == $this->read()[0]){
+                    $this->strasse = compact('id','name','nummer','lat','lng');
+                    if($this->strasse == $this->read()[0]){
                         return true;
                     }else{
                         $this->error[] = 'Fehler beim Schreiben, Daten stimmen nicht überein!';
@@ -85,9 +87,9 @@ class Adressen
             $this->error[] = 'Keine gültige ID angegeben!';
             return false;
         }else{
-            $sql = "UPDATE adressen SET name = :name, nummer = :nummer, lat = :lat, lng = :lng WHERE id = :id";
-            $sqlArgs = $this->adresse;
-            $result = $this->aktualisiereAdresse($sql, $sqlArgs);
+            $sql = "UPDATE strassen SET name = :name, nummer = :nummer, lat = :lat, lng = :lng WHERE id = :id";
+            $sqlArgs = $this->strasse;
+            $result = $this->aktualisiereStrasse($sql, $sqlArgs);
             if (!$result){
                 return false;
             }else{
@@ -96,15 +98,15 @@ class Adressen
         }
     }
     /**
-     * Lese die Adresse aus der Datenbanktabelle adressen anhand der ID.
+     * Lese die Adresse aus der Datenbanktabelle strassen anhand der ID.
      * Die Id muss vorher über Instanz.setId() bekanntgegeben werden.
-     * Die Adresse wird an das Array adressen gebunden und anschließend
+     * Die Adresse wird an das Array strassen gebunden und anschließend
      * über die Methode setAdressenInstanzvariablen() an die jeweiligen
      * Instanzvariablen übergeben.
      *
      * @return array                                Es wird ein Ergebnis als Array oder ein leeres Array zurückgegeben.
      * @throws ErrorException
-     * @see setAdressenInstanzvariablen()
+     * @see setStrassenInstanzvariablen()
      */
     public function read():array{
         # Prüfe ob id gesetzt
@@ -112,20 +114,23 @@ class Adressen
             $this->error[] = 'Es wurde keine gültige AdressenID angegeben!';
             return array();
         }else{
-            $sql = "SELECT id, name, nummer, lat, lng FROM adressen WHERE id = :id";
+            $sql = "SELECT id, name, nummer, lat, lng FROM strassen WHERE id = :id";
             $sqlArgs = array(':id'=>$this->id);
-            $result = $this->readFromAdressen($sql, $sqlArgs);
+            $result = $this->readFromStrassen($sql, $sqlArgs);
             if (!$result){
                 $this->error[] = 'Fehler bei der Abfrage der Daten!';
                 return array();
             }else{
-                $this->setAdressenInstanzvariablen($result);
+                $this->setStrassenInstanzvariablen($result);
                 return $result;
             }
         }
     }
+
+    /*--------------------PUBLIC / STATIC-------*/
     /**
-     * Gibt eine komplette Liste der Tabelle adressen aus.
+     * Gibt eine komplette Liste der Tabelle strassen aus.
+     * Statische Methode der Klasse Strassen, zur Abfrage wird eine temporäre Instanz genutzt.
      *
      * @param string    $orderBy    Spalte nach der sortiert werden soll.
      * @param string    $order      Sortierreihenfolge ASC = aufsteigend (default), DESC absteigend
@@ -134,7 +139,7 @@ class Adressen
      * @return array                Ein assoziatives Array ([0]=>Array [int id, string name, string nummer, string lat, string lng]...)
      * @throws ErrorException
      */
-    public function readAdressenListe(string $orderBy = 'name',string $order='ASC', int $rows = 0, int $offset = 0):array{
+    public static function getStrassenListe(string $orderBy = 'name', string $order='ASC', int $rows = 0, int $offset = 0):array{
         $sqlOrder = ' ORDER BY '.$orderBy;
             if (strtoupper($order)== 'ASC'){
                 $sqlOrder .= ' ASC';
@@ -149,16 +154,42 @@ class Adressen
                 $sqlLimit .= ' OFFSET '.$offset;
             }
         }
-        $sql = "SELECT * FROM adressen".$sqlOrder.$sqlLimit;
+        $sql = "SELECT * FROM strassen".$sqlOrder.$sqlLimit;
 
-        return $this->readFromAdressen($sql);
+        $tmp_Adr = new Strassen();
+        return $tmp_Adr->readFromStrassen($sql);
+    }
+    /**
+     * Eine Volltextsuche, die in allen Spalten nach Übereinstimmungen mit dem Suchstring sucht.
+     * Die Datenbankabfrage erfolgt mit LIKE, Wildcards vor und nach dem gesuchten String.
+     *
+     * Statische Methode der Klasse Strassen, zur Abfrage wird eine temporäre Instanz erzeugt.
+     *
+     * @param string            $suche  Der entsprechende Suchstring.
+     * @return array                    Das Ergebnis der Datenbankabfrage.
+     * @throws ErrorException
+     */
+    public static function search(string $suche = ''): array
+    {
+        if ($suche == '') return array();
+        $sql = "SELECT id, name, nummer, lat, lng FROM strassen ";
+        $sql .= "WHERE UPPER(name) LIKE UPPER(:name) OR ";
+        $sql .= "UPPER(nummer) LIKE UPPER(:nummer) OR ";
+        $sql .= "UPPER(lat) LIKE UPPER(:lat) OR ";
+        $sql .= "UPPER(lng) LIKE UPPER(:lng)";
+        $sqlArgs = array(   ':name'     =>'%'.$suche.'%',
+                            ':nummer'   =>'%'.$suche.'%',
+                            ':lat'      =>'%'.$suche.'%',
+                            ':lng'      =>'%'.$suche.'%'
+                    );
+        $tmp_Adr = new Strassen();
+        return $tmp_Adr->readFromStrassen($sql, $sqlArgs);
     }
 
     /*--------------------SETTER----------------*/
     /**
      * setze die ID der aktuellen Instanz
      * @param int $id           Die ID als Ganzzahl größer 0.
-     * @throws ErrorException
      */
     public function setId(int $id = 0): void
     {
@@ -166,7 +197,7 @@ class Adressen
             $this->error[] = 'Keine oder ungültige ID angegeben! Die ID muss eine Ganzzahl größer 0 sein.';
         }else{
             $this->id = $id;
-            $this->adresse['id'] = $id;
+            $this->strasse['id'] = $id;
         }
     }
     /**
@@ -179,7 +210,7 @@ class Adressen
             $this->error[] = "Der angegebene Name darf nicht leer sein!";
         }else {
             $this->name = $name;
-            $this->adresse['name'] = $name;
+            $this->strasse['name'] = $name;
         }
     }
     /**
@@ -189,7 +220,7 @@ class Adressen
     public function setNummer(string $nummer = ''): void
     {
         $this->nummer = $nummer;
-        $this->adresse['nummer'] = $nummer;
+        $this->strasse['nummer'] = $nummer;
     }
     /**
      * setze die Breitengrade der aktuellen Instanz
@@ -198,7 +229,7 @@ class Adressen
     public function setLat(string $lat = ''): void
     {
         $this->lat = $lat;
-        $this->adresse['lat']= $lat;
+        $this->strasse['lat']= $lat;
     }
     /**
      * setze die Längengrade der aktuellen Instanz
@@ -207,9 +238,9 @@ class Adressen
     public function setLng(string $lng = ''): void
     {
         $this->lng = $lng;
-        $this->adresse['lng'] = $lng;
+        $this->strasse['lng'] = $lng;
     }
-    public function setAdresse(int $id = 0, string $name='', string $nummer='', string $lat='', string $lng=''){
+    public function setStrasse(int $id = 0, string $name='', string $nummer='', string $lat='', string $lng=''){
         # Prüfe ob eine gültige ID vorhanden
         if ($id == 0 or $id == -1 or !is_numeric($id)) {
             $this->error[] = 'Keine gültige ID angegeben!';
@@ -225,7 +256,7 @@ class Adressen
             $this->nummer = $nummer;
             $this->lat = $lat;
             $this->lng = $lng;
-            $this->adresse = compact('id', 'name', 'nummer', 'lat', 'lng');
+            $this->strasse = compact('id', 'name', 'nummer', 'lat', 'lng');
         }
     }
 
@@ -234,8 +265,8 @@ class Adressen
      * gebe die Daten der aktuellen Instanz als Array zurück
      * @return array
      */
-    public function getAdresse():array{
-        return $this->adresse;
+    public function getStrasse():array{
+        return $this->strasse;
     }
     /**
      * gibt die ID der aktuellen Instanz aus
@@ -289,7 +320,7 @@ class Adressen
 
     /*--------------------PRIVATE---------------*/
     /**
-     * Schreibe einen neuen Datensatz in die Datenbanktabelle adressen.
+     * Schreibe einen neuen Datensatz in die Datenbanktabelle strassen.
      * Bei Erfolg setze die Instanz-ID auf die erzeugt ID.
      *
      *@param    string  $sql        Der SQL-Befehl.
@@ -297,7 +328,7 @@ class Adressen
      *
      * @return bool
      */
-    private function createNewAdresse(string $sql = '', array $sqlArgs = []):bool{
+    private function createNewStrasse(string $sql = '', array $sqlArgs = []):bool{
         $pdo = Database::connectDB();
         $stmt = $pdo->prepare($sql);
         $result = $stmt ->execute($sqlArgs);
@@ -311,7 +342,7 @@ class Adressen
         }
     }
     /**
-     * Lese den aktuellen Datensatz aus der Datenbanktabelle 'adressen'.
+     * Lese den aktuellen Datensatz aus der Datenbanktabelle 'strassen'.
      * Es werden der entsprechende Query-String, sowie die Parameter für prepared-statements übergeben.
      * Der Rückgabewert ist abhängig vom Erfolg der Query-Ausführung. Bei erfolgreicher Ausführung wird
      * das Ergebnis als Array in die Instanz geschrieben und zur weiteren Verarbeitung bereitgestellt.
@@ -323,9 +354,9 @@ class Adressen
      * @return array                 Der Rückgabewert ist ein Array mit dem Inhalt der Datenbankabfrage.
      *
      * @throws ErrorException       Fehler der Datenbankabfrage
-     * @see                         setAdressenInstanzvariablen()
+     * @see                         setStrassenInstanzvariablen()
      */
-    private function readFromAdressen (string $sql = '', array $sqlArgs = []): array
+    private function readFromStrassen (string $sql = '', array $sqlArgs = []): array
     {
         if($sql == ''){
             return array();
@@ -344,7 +375,7 @@ class Adressen
      * Aktualisiere einen Datenbankeintrag
      * @throws ErrorException
      */
-    private function aktualisiereAdresse(string $sql, array $sqlArgs):bool{
+    private function aktualisiereStrasse(string $sql, array $sqlArgs):bool{
         $result = Database::updateDatabase($sql, $sqlArgs);
         if (!$result){
             $this->error[] = 'Fehler beim Aktualisieren der Adresse!';
@@ -359,19 +390,19 @@ class Adressen
      * Diese Methode ist allen Methoden mit Datenbankzugriff nachgeordnet.
      * Diese Methode hat keinen Rückgabewert.
      *
-     * @param array     $adressen   Ein Array, das alle Einträge der Datenbanktabelle zu dieser Instanz enthält.
+     * @param array     $strassen   Ein Array, das alle Einträge der Datenbanktabelle zu dieser Instanz enthält.
      *
      * @return void
      */
-    private function setAdressenInstanzvariablen(array $adressen = []): void{
+    private function setStrassenInstanzvariablen(array $strassen = []): void{
 
-        if (!empty($adressen)){
-            $this->adresse  = $adressen[0];
-            $this->id       = $adressen[0]['id'];
-            $this->name     = $adressen[0]['name'];
-            $this->nummer   = (is_null($adressen[0]['nummer'])) ? '' : $adressen[0]['nummer'];
-            $this->lat      = (is_null($adressen[0]['lat'])) ? '' : $adressen[0]['lat'];
-            $this->lng      = (is_null($adressen[0]['lng'])) ? '' : $adressen[0]['lng'];
+        if (!empty($strassen)){
+            $this->strasse  = $strassen[0];
+            $this->id       = $strassen[0]['id'];
+            $this->name     = $strassen[0]['name'];
+            $this->nummer   = (is_null($strassen[0]['nummer'])) ? '' : $strassen[0]['nummer'];
+            $this->lat      = (is_null($strassen[0]['lat'])) ? '' : $strassen[0]['lat'];
+            $this->lng      = (is_null($strassen[0]['lng'])) ? '' : $strassen[0]['lng'];
         }
     }
 }

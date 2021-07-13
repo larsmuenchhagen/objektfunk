@@ -1,1 +1,4 @@
 
+2021-07-13 - 12:14:09 Fehler beim Einfügen eines Datensatzes!
+PDOStatement::execute(): SQLSTATE[HY093]: Invalid parameter number: number of bound variables does not match number of tokens
+----------------------------------------------------------------------
