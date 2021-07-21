@@ -27,6 +27,7 @@ class Strasse
 
 
     /*--------------------PUBLIC----------------*/
+    # TODO
     # create
     # read
     # update
