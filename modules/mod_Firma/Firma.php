@@ -210,16 +210,12 @@ class Firma
             # Transaction senden
             $pdo->commit();
 
-        }catch (InvalidArgumentException $e){
-            $this->error[] = 'Fehler beim Schreiben in die Datenbank! '.$e->getMessage();
-
-        }catch(Exception $e){
+        }catch (InvalidArgumentException | Exception $e){
             $this->error[] = 'Fehler beim Schreiben in die Datenbank! '.$e->getMessage();
             $pdo->rollBack();
             $pdo = null;
-            Database::closeDB();
-
         } finally {
+            Database::closeDB();
             # Daten senden
             return $data;
         }
