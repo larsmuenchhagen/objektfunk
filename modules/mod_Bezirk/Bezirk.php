@@ -67,10 +67,10 @@ class Bezirk
     /**
      * Liest einen Datensatz aus der Tabelle bezirke anhand einer übergebenen ID.
      * @param int $id
-     * @return array
+     * @return bool
      * @throws ErrorException
      */
-    public function read(int $id = 0):array{
+    public function read(int $id = 0):bool{
 
         if ($id == 0 or !is_int($id)){
             $this->error[]= 'Keine gültige ID angegeben!';
@@ -80,7 +80,15 @@ class Bezirk
             $sqlArgs = array(':id'=>$id);
         }
 
-        return Database::readFromDatabase($sql, $sqlArgs);
+        $result = Database::readFromDatabase($sql, $sqlArgs);
+
+        if(empty($result)){
+            $this->error[] = 'ID existiert nicht!';
+            return false;
+        }else {
+            $this->bezirk = $result[0];
+            return true;
+        }
     }
 
     /**
